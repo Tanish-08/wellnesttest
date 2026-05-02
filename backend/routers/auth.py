@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 import bcrypt
 from jose import jwt
 from datetime import datetime, timedelta
@@ -37,6 +37,7 @@ def create_access_token(data: dict) -> str:
 
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 def register(body: RegisterRequest):
     db = supabase()
     # Check if email already exists
@@ -110,8 +111,10 @@ def login(body: LoginRequest):
     )
 
 
-@router.get("/me/{user_id}", response_model=UserProfile)
-def get_profile(user_id: str):
+from dependencies import get_current_user
+
+@router.get("/me", response_model=UserProfile)
+def get_profile(user_id: str = Depends(get_current_user)):
     db = supabase()
     result = db.table("users").select("id, full_name, email, date_of_birth, gender").eq("id", user_id).execute()
 

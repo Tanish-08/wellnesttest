@@ -11,6 +11,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 # ------------------------------------------------------------------
 mock_db = MagicMock()
 
+from jose import jwt
+from datetime import datetime, timedelta
+
+def create_test_token(user_id: str):
+    expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode = {"sub": user_id, "exp": expire}
+    return jwt.encode(to_encode, "test-secret", algorithm="HS256")
+
 MOCK_USER = {
     "id": "user-uuid-123",
     "full_name": "John Doe",
@@ -139,8 +147,12 @@ def test_login_unknown_email():
 
 def test_get_profile_success():
     _set_select_response([MOCK_USER])
+    token = create_test_token("user-uuid-123")
 
-    resp = client.get("/auth/me/user-uuid-123")
+    resp = client.get(
+        "/auth/me",
+        headers={"Authorization": f"Bearer {token}"}
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["email"] == "john@example.com"
@@ -149,6 +161,10 @@ def test_get_profile_success():
 
 def test_get_profile_not_found():
     _set_select_response([])
+    token = create_test_token("nonexistent-id")
 
-    resp = client.get("/auth/me/nonexistent-id")
+    resp = client.get(
+        "/auth/me",
+        headers={"Authorization": f"Bearer {token}"}
+    )
     assert resp.status_code == 404

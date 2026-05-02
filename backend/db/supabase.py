@@ -15,7 +15,17 @@ def get_supabase() -> Client:
         if not url or not key:
             raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set in .env")
         
-        _client = create_client(url, key)
+        # Only use the bypass hack if the key is an opaque key (not a JWT)
+        if key.startswith("sb_"):
+            dummy_jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+            _client = create_client(url, dummy_jwt)
+            
+            # Overwrite with the real key
+            _client.supabase_key = key
+            _client.options.headers["apikey"] = key
+            _client.options.headers["Authorization"] = f"Bearer {key}"
+        else:
+            _client = create_client(url, key)
         
     return _client
 

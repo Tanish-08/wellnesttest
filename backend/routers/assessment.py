@@ -7,6 +7,7 @@ from db.supabase import supabase
 router = APIRouter(prefix="/assessments", tags=["assessments"])
 
 @router.post("/", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/submit-assessment", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED)
 def create_assessment(
     assessment: AssessmentCreate,
     user_id: str = Depends(get_current_user)
@@ -29,6 +30,7 @@ def create_assessment(
     return AssessmentResponse(**result.data[0])
 
 @router.get("/", response_model=List[AssessmentResponse])
+@router.get("/get-risk-score", response_model=List[AssessmentResponse])
 def get_assessments(user_id: str = Depends(get_current_user)):
     db = supabase()
     result = db.table("assessment_results") \

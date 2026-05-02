@@ -22,6 +22,8 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
+import { AuthProvider } from '@/components/auth-provider'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -30,7 +32,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background overflow-x-hidden overflow-y-auto">
       <body className={`${poppins.variable} font-sans antialiased min-h-screen overflow-y-auto`}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

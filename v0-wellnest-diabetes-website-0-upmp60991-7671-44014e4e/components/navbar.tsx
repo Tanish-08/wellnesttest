@@ -1,12 +1,14 @@
-"use client"
+ "use client"
 
 import Link from "next/link"
 import { useState } from "react"
 import { Leaf, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "./auth-provider"
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const { user, logout, isLoading } = useAuth()
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-md border-b border-border">
@@ -33,12 +35,27 @@ export function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild className="bg-primary hover:bg-primary/90">
-              <Link href="/register">Register</Link>
-            </Button>
+            {!isLoading && (
+              user ? (
+                <>
+                  <Button variant="ghost" asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </Button>
+                  <Button variant="outline" onClick={logout}>
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" asChild>
+                    <Link href="/login">Login</Link>
+                  </Button>
+                  <Button asChild className="bg-primary hover:bg-primary/90">
+                    <Link href="/register">Register</Link>
+                  </Button>
+                </>
+              )
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -83,12 +100,33 @@ export function Navbar() {
             </Link>
             <hr className="border-border" />
             <div className="flex flex-col gap-2">
-              <Button variant="outline" asChild className="w-full">
-                <Link href="/login">Login</Link>
-              </Button>
-              <Button asChild className="w-full bg-primary hover:bg-primary/90">
-                <Link href="/register">Register</Link>
-              </Button>
+              {!isLoading && (
+                user ? (
+                  <>
+                    <Button variant="outline" asChild className="w-full">
+                      <Link href="/history" onClick={() => setIsOpen(false)}>Dashboard</Link>
+                    </Button>
+                    <Button 
+                      className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                      onClick={() => {
+                        logout();
+                        setIsOpen(false);
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" asChild className="w-full">
+                      <Link href="/login" onClick={() => setIsOpen(false)}>Login</Link>
+                    </Button>
+                    <Button asChild className="w-full bg-primary hover:bg-primary/90">
+                      <Link href="/register" onClick={() => setIsOpen(false)}>Register</Link>
+                    </Button>
+                  </>
+                )
+              )}
             </div>
           </div>
         </div>

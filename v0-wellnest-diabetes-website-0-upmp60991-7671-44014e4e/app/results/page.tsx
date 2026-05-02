@@ -9,11 +9,13 @@ import { calculateRiskLevel, getRecommendations, questions } from "@/lib/questio
 import { CircularProgress } from "@/components/circular-progress"
 import { ScoreBreakdown } from "@/components/score-breakdown"
 
+import { useAuth } from "@/components/auth-provider"
+
 export default function ResultsPage() {
+  const { user } = useAuth()
   const [score, setScore] = useState<number | null>(null)
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [isAnimating, setIsAnimating] = useState(true)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
     const stored = localStorage.getItem("wellnest_results")
@@ -21,10 +23,6 @@ export default function ResultsPage() {
       const { score: storedScore, answers: storedAnswers } = JSON.parse(stored)
       setScore(storedScore)
       setAnswers(storedAnswers)
-    }
-
-    if (localStorage.getItem("wellnest_token")) {
-      setIsLoggedIn(true)
     }
 
     // Stop animation after 2 seconds
@@ -185,7 +183,7 @@ Please consult a healthcare professional for proper diagnosis and treatment.
         </div>
 
         {/* Save Results Button */}
-        {!isLoggedIn && (
+        {!user && (
           <Card className="bg-secondary/30 border-primary/20 rounded-2xl">
             <CardContent className="p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
