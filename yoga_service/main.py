@@ -23,14 +23,16 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# ── TFLite interpreter ──────────────────────────────────────────────────────
+# ── TFLite interpreter & Keras ──────────────────────────────────────────────
 try:
     from tflite_runtime.interpreter import Interpreter
 except ImportError:
-    import tensorflow as tf
-    Interpreter = tf.lite.Interpreter
-
-import tensorflow as tf  # needed for Keras model load
+    try:
+        import tensorflow as tf
+        Interpreter = tf.lite.Interpreter
+    except ImportError:
+        Interpreter = None
+        tf = None
 
 # ── Config ──────────────────────────────────────────────────────────────────
 MODEL_DIR = os.path.dirname(__file__)
@@ -64,16 +66,22 @@ def load_models():
         movenet_interpreter.allocate_tensors()
         print("[OK] MoveNet Thunder loaded.")
 
-    if not os.path.exists(KERAS_WEIGHTS):
-        print(f"[WARN] Keras weights not found at {KERAS_WEIGHTS}. Using rule-based fallback.")
+    if not os.path.exists(KERAS_WEIGHTS) or tf is None:
+        print(f"[WARN] Keras weights not found or TensorFlow missing. Using rule-based fallback.")
     else:
-        keras_model = build_classifier()
-        keras_model.load_weights(KERAS_WEIGHTS)
-        print("[OK] Keras pose classifier loaded.")
+        try:
+            keras_model = build_classifier()
+            keras_model.load_weights(KERAS_WEIGHTS)
+            print("[OK] Keras pose classifier loaded.")
+        except Exception as e:
+            print(f"[ERROR] Failed to load Keras model: {e}")
+            keras_model = None
 
 
 def build_classifier():
     """Recreate the same model architecture used during training."""
+    if tf is None:
+        return None
     model = tf.keras.Sequential([
         tf.keras.layers.Dense(128, activation="relu", input_shape=(51,)),
         tf.keras.layers.Dropout(0.5),

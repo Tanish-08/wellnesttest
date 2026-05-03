@@ -1,1 +1,10 @@
-{}
+{
+  "name": "wellnest-root",
+  "version": "1.0.0",
+  "scripts": {
+    "dev:frontend": "cd v0-wellnest-diabetes-website-0-upmp60991-7671-44014e4e && npm run dev",
+    "dev:backend": "cd backend && venv\\Scripts\\python -m uvicorn main:app --reload --port 8000",
+    "dev:yoga": "cd yoga_service && venv\\Scripts\\python -m uvicorn main:app --reload --port 8001",
+    "dev": "npm run dev:frontend"
+  }
+}
